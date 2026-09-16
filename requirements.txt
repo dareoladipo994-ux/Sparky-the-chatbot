@@ -1,0 +1,6 @@
+
+📁 Project Structure
+├── app.py              # Main application script
+├── requirements.txt    # Required Python packages
+└── README.md           # Project documentation
+
