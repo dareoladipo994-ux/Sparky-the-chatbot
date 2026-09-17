@@ -1,6 +1,6 @@
-from dotenv import load_dotenv
-load_dotenv()
+import os
 import streamlit as st
+os.environ["AGENTROUTER_API_KEY"] = st.secrets["AGENTROUTER_API_KEY"]
 from openai import OpenAI
 import os
 import re
@@ -19,7 +19,7 @@ def format_chat_history(messages):
         if msg["role"] == "system":
             continue
         role = "Sparky" if msg["role"] == "assistant" else "User"
-        # Handle string or list-based content (multimodal structure) Safely
+        # Handle string or list-based content (multimodal structure) safely
         if isinstance(msg["content"], list):
             text_pieces = [part["text"] for part in msg["content"] if part.get("type") == "text"]
             text = " ".join(text_pieces)
@@ -55,7 +55,7 @@ if not API_KEY:
 
 # Initialize Client pointing to the standardized AgentRouter API Endpoint
 client = OpenAI(
-    base_url="https://agentrouter.org/v1",
+    base_url="https://agentrouter.to",
     api_key=API_KEY
 )
 
@@ -118,7 +118,7 @@ if "chat_history" not in st.session_state:
 
 st.title("🤖 Sparky - AI Assistant")
 
-# Image Uploader (Collapsible) - Restored with new processing backend
+# Image Uploader (Collapsible)
 with st.expander("📎 Attach an Image (Optional)"):
     uploaded_image = st.file_uploader("Upload an image for Sparky to analyze", type=['png', 'jpg', 'jpeg'])
 
@@ -168,7 +168,7 @@ if len([m for m in st.session_state.chat_history if m["role"] != "system"]) == 0
 prompt = st.chat_input("Ask Sparky something...") or starter_prompt
 
 if prompt:
-    # 1. Prepare modern message payload list
+    # Prepare modern message payload list
     content_payload = [{"type": "text", "text": prompt}]
     
     # Process image attachment into standard base64 data URL formatting if present
@@ -207,10 +207,10 @@ if prompt:
                 stream=True
             )
             
-            # Generator helper to capture delta values coming over the network thread
+            # FIXED: Corrected chunk object validation to prevent application crash
             def stream_generator():
                 for chunk in response_stream:
-                    if chunk.choices and len(chunk.choices) > 0:
+                    if hasattr(chunk, 'choices') and chunk.choices:
                         delta = chunk.choices[0].delta.content
                         if delta:
                             yield delta
